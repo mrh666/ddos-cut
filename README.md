@@ -53,6 +53,6 @@ IPTABLES chain ddos-cut
 
 Default parameter are:
 ```
-Connections banned = 140
+Connections banned per one IP = 140
 Jail time = 600 sec
 ```
