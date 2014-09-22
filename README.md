@@ -39,7 +39,7 @@ Make it executable:
 chmod +x /usr/local/bin/ddos-cut.sh
 ```
 
-Add a crontab record (running every minute) - use <strong>crontab -e></strong>:
+Add a crontab record (running every minute) - use <strong>crontab -e</strong>:
 ```
 * * * * *	/usr/local/bin/ddos-cut.sh 1> /dev/null 2> /dev/null
 ```
