@@ -39,17 +39,17 @@ Make it executable:
 chmod +x /usr/local/bin/ddos-cut.sh
 ```
 
-Add a crontab record (running every minute) - use <crontab -e>:
+Add a crontab record (running every minute) - use <strong>crontab -e></strong>:
 ```
 * * * * *	/usr/local/bin/ddos-cut.sh 1> /dev/null 2> /dev/null
 ```
 
-By default script will create:
-```
-Temporary directory /tmp/ddos-cut (will contain list banned IP in files with name: UNIX_TIMESTAMP.IP)
-Log file /var/log/ddos-cut.log
+By default script will create:<br />
+Temporary directory /tmp/ddos-cut<br />
+Files in /tmp/ddos-cut will have names: UNIX_TIMESTAMP.IP and deleted automatically<br />
+Log file /var/log/ddos-cut.log<br />
 New IPTABLES chain ddos-cut
-```  
+
 
 Default parameter are:
 ```
