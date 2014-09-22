@@ -21,7 +21,7 @@ Please check all variables before you run this script.
 
 1. Script using system resources and should be running from root or use sudo
 
-2. Make sure you gave a git command installed. And i not, install it with something like:
+2. Make sure you gave a git command installed. And if not, install it with something like:
 yum install git
 
 3. Copy this script into your /usr/local/bin folder:
