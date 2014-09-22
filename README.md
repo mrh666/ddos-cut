@@ -24,12 +24,12 @@ Please check all variables before you run this script.
 
 Script using system resources and should be running from root or use sudo
 
-Make sure you gave a git command installed. And if not, install it with something like:
+Make sure you have a git command installed. And if not, install it:
 ```
 yum install git
 ```
 
-Copy this script into your /usr/local/bin folder:
+Copy this script into /usr/local/bin folder:
 ```
 git clone https://github.com/mrh666/ddos-cut.git && cp ddos-cut/ddos-cut.sh /usr/local/bin/
 ```
@@ -39,16 +39,16 @@ Make it executable:
 chmod +x /usr/local/bin/ddos-cut.sh
 ```
 
-Crontab record you'll need (running every minute) - use <crontab -e>:
+Add a crontab record (running every minute) - use <crontab -e>:
 ```
 * * * * *	/usr/local/bin/ddos-cut.sh 1> /dev/null 2> /dev/null
 ```
 
 By default script will create:
 ```
-temporary directory /tmp/ddos-cut (will contain scripts for IP unban after )
-Log file /var/log/ddos-cut
-IPTABLES chain ddos-cut
+Temporary directory /tmp/ddos-cut (will contain list banned IP in files with name: UNIX_TIMESTAMP.IP)
+Log file /var/log/ddos-cut.log
+New IPTABLES chain ddos-cut
 ```  
 
 Default parameter are:
