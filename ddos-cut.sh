@@ -1,12 +1,12 @@
 #!/bin/bash
 
-SCRIPT_NAME="DDOS CUT v.0.2 by MrMrh"
-RELEASE="Release date: 2014-09-22 13:36 GMT"
+SCRIPT_NAME="DDOS CUT v.0.3 by MrMrh"
+RELEASE="Release date: 2014-09-22 16:40 GMT"
 
 # Tested on CentOS 6.5, CentOS 7
-# Please check all variables before you run this script
+# Please check all the variables before you run this script
 # Put this script into your /usr/local/bin folder and make it executable: chmod +x /usr/local/bin/ddos-cut.sh
-# Script using system resources and should be running from root or sudo user
+# Script using system resources and should be running from root or use sudo
 # Crontab record you'll need (running every minute): * * * * *	/usr/local/bin/ddos-cut.sh 1> /dev/null 2> /dev/null
 # Put this crontab record by: sudo crontab -e
 #
@@ -17,8 +17,8 @@ RELEASE="Release date: 2014-09-22 13:36 GMT"
 
 C_DATE=`date`
 U_DATE=`date '+%s'`
-CONNECTIONS_LIMIT=140 		# IP with connctions more than $CONNECTIONS_LIMIT will be banned
-BAN_TIME=600 			# Num seconds
+CONNECTIONS_LIMIT=140 		# IP with more or equal than $CONNECTIONS_LIMIT will be banned
+BAN_TIME=600 			# sec
 LOG_DIR="/var/log/"
 LOG_FILE=$LOG_DIR"ddos-cut.log"
 NETSTAT="/bin/netstat"
@@ -61,7 +61,7 @@ create_chain() {
 }
 
 banned_list() {
-	$IPTABLES -n -L $CHAIN_NAME | $GREP DROP | awk '{print $4}'
+	$IPTABLES -n -L $CHAIN_NAME | $GREP DROP | $AWK '{print $4}'
 }
 
 unban_all() {
