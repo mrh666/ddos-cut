@@ -10,7 +10,7 @@ RELEASE="Release date: 2014-09-22 13:36 GMT"
 # Crontab record you'll need (running every minute): * * * * *	/usr/local/bin/ddos-cut.sh 1> /dev/null 2> /dev/null
 # Put this crontab record by: sudo crontab -e
 #
-# Be default will be created:
+# By default will create:
 #	temporary directory /tmp/ddos-cut (will contain scripts for IP unban after )
 #	Log file /var/log/ddos-cut
 #	IPTABLES chain ddos-cut
