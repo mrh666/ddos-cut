@@ -2,7 +2,9 @@ ddos-cut
 ========
 
 Netstat based anti-ddos solution
+```
 Usage: ddos-cut.sh option [IP]
+```
 
 Possible options:
 ```
@@ -20,24 +22,24 @@ Bash script was tested on CentOS 6.5, CentOS 7
 
 Please check all variables before you run this script.
 
-1. Script using system resources and should be running from root or use sudo
+Script using system resources and should be running from root or use sudo
 
-2. Make sure you gave a git command installed. And if not, install it with something like:
+Make sure you gave a git command installed. And if not, install it with something like:
 ```
 yum install git
 ```
 
-3. Copy this script into your /usr/local/bin folder:
+Copy this script into your /usr/local/bin folder:
 ```
 git clone https://github.com/mrh666/ddos-cut.git && cp ddos-cut/ddos-cut.sh /usr/local/bin/
 ```
 
-3. Make it executable: 
+Make it executable: 
 ```
 chmod +x /usr/local/bin/ddos-cut.sh
 ```
 
-4. Crontab record you'll need (running every minute) - use <crontab -e>:
+Crontab record you'll need (running every minute) - use <crontab -e>:
 ```
 * * * * *	/usr/local/bin/ddos-cut.sh 1> /dev/null 2> /dev/null
 ```
@@ -48,3 +50,9 @@ temporary directory /tmp/ddos-cut (will contain scripts for IP unban after )
 Log file /var/log/ddos-cut
 IPTABLES chain ddos-cut
 ```  
+
+Default parameter are:
+```
+Connections banned = 140
+Jail time = 600 sec
+```
