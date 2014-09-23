@@ -1,7 +1,7 @@
 ddos-cut
 ========
 
-Netstat based anti-ddos solution
+Netstat based anti-ddos solution. Prevent ddos attacks by IPv4 connections monitoring and use iptables for temporary DROP rules.
 ```
 Usage: ddos-cut.sh option [IP]
 ```
@@ -18,11 +18,11 @@ Possible options:
 		-v | --version: Show version and exit.
 		-V | --verbose: Verbose output.
 ```
-Bash script was tested on CentOS 6.5, CentOS 7
+Bash script was tested on CentOS 6.5, CentOS 7.
 
 Please check all variables before you run this script.
 
-Script using system resources and should be running from root or use sudo
+A script using system resources and should be running from root or use sudo.
 
 Make sure you have a git command installed. And if not, install it:
 ```

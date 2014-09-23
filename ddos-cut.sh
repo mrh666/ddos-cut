@@ -1,19 +1,20 @@
 #!/bin/bash
 
-SCRIPT_NAME="DDOS CUT v.0.3 by MrMrh"
-RELEASE="Release date: 2014-09-22 16:40 GMT"
+SCRIPT_NAME="DDOS CUT v.0.4 by MrMrh"
+RELEASE="Release date: 2014-09-23 10:50 GMT"
 
 # Tested on CentOS 6.5, CentOS 7
 # Please check all the variables before you run this script
 # Put this script into your /usr/local/bin folder and make it executable: chmod +x /usr/local/bin/ddos-cut.sh
-# Script using system resources and should be running from root or use sudo
+# A script using system resources and should be run from root or use sudo
 # Crontab record you'll need (running every minute): * * * * *	/usr/local/bin/ddos-cut.sh 1> /dev/null 2> /dev/null
 # Put this crontab record by: sudo crontab -e
 #
 # By default script will create:
-#	temporary directory /tmp/ddos-cut (will contain scripts for IP unban after )
-#	Log file /var/log/ddos-cut
-#	IPTABLES chain ddos-cut
+#	temporary directory /tmp/ddos-cut
+# 		Files in /tmp/ddos-cut will have names: UNIX_TIMESTAMP.IP and deleted automatically
+#	Log file /var/log/ddos-cut.log
+#	New IPTABLES chain ddos-cut
 
 C_DATE=`date`
 U_DATE=`date '+%s'`
@@ -68,11 +69,15 @@ unban_all() {
 	$IPTABLES -F $CHAIN_NAME
 	rm -rf $TMP_DIR/* 1>/dev/null 2>/dev/null
 	if [ $($IPTABLES -L $CHAIN_NAME 2>/dev/null | wc -l) -eq 2 ]; then
+		LOG_TEXT="$LOG_PREF Chain $CHAIN_NAME cleaned."
+		$LOGGER -s "$LOG_TEXT" 2>> $LOG_FILE
 		if [ "$VERBOSE" == 1 ]; then
 			echo "Chain cleaned"
 		fi
 	elif [ $($IPTABLES -L $CHAIN_NAME 2>/dev/null | wc -l) -eq 0 ]; then
 		create_chain
+		LOG_TEXT="$LOG_PREF Chain doesn't exist. New chain $CHAIN_NAME created."
+		$LOGGER -s "$LOG_TEXT" 2>> $LOG_FILE
 		if [ "$VERBOSE" == 1 ]; then
 			echo "Chain doesn't exist. New chain "$CHAIN_NAME" created."
 		fi
@@ -82,7 +87,7 @@ unban_all() {
 unban_ip() {
 	valid_ip "$1"
 	if [ "$valid_ip" == 1 ]; then
-		if [ $($IPTABLES -n -L $CHAIN_NAME | $GREP "$1" | wc -l) -eq 1 ]; then
+		if [ $($IPTABLES -n -L $CHAIN_NAME | $GREP "$1" | wc -l) -ge 1 ]; then
 			IP_CHECK="$1"
 			$IPTABLES -D $CHAIN_NAME -s $IP_CHECK -j DROP
 			if [ $($IPTABLES -n -L $CHAIN_NAME | $GREP "$1" | wc -l) -lt 1 ]; then
@@ -161,13 +166,13 @@ helper() {
 }
 
 new_log() {
-	# Create the log file if not exists, check if it's possible to write to log file
+	# Create the log file if doesn't exist, check if it's possible to write to log file
 	( [ -e "$LOG_FILE" ] || touch "$LOG_FILE" ) && [ ! -w "$LOG_FILE" ] && echo cannot write to $LOG_FILE && exit 1
 }
 
 show_current() {
 	$NETSTAT --numeric-ports --numeric-users -ntu | \
-	# Cut localhost from output
+	# Clean output
 	$EGREP -v "127.0.0.1|Address|servers" | \
 	# Select only connected hosts
 	$AWK '{print $5}' | \
@@ -179,7 +184,7 @@ show_current() {
 	$SORT | \
 	# Count unique IP addresses
 	$UNIQ -c | \
-	# Sort by amount of open connections
+	# Sort by open connections
 	$SORT -n
 }
 
