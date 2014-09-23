@@ -28,26 +28,63 @@
       </header>
       <section>
         <h3>
-<a name="welcome-to-github-pages" class="anchor" href="#welcome-to-github-pages"><span class="octicon octicon-link"></span></a>Welcome to GitHub Pages.</h3>
+<a name="welcome-to-github-pages" class="anchor" href="#welcome-to-github-pages"><span class="octicon octicon-link"></span></a>Welcome to DDoS CUT script page.</h3>
 
-<p>This automatic page generator is the easiest way to create beautiful pages for all of your projects. Author your page content here using GitHub Flavored Markdown, select a template crafted by a designer, and publish. After your page is generated, you can check out the new branch:</p>
+<p>Netstat based anti-ddos solution. Prevent ddos attacks by IPv4 connections monitoring and use iptables for temporary DROP rules.</p>
 
-<pre><code>$ cd your_repo_root/repo_name
-$ git fetch origin
-$ git checkout gh-pages
+<pre><code>Usage: ddos-cut.sh option [IP]
 </code></pre>
 
-<p>If you're using the GitHub for Mac, simply sync your repository and you'll see the new branch.</p>
+<p>Possible options:</p>
 
-<h3>
-<a name="designer-templates" class="anchor" href="#designer-templates"><span class="octicon octicon-link"></span></a>Designer Templates</h3>
+<pre><code>        -bl | --banned-list: Show banned IP list and exit.
+        -c | --clean-log: Make log file clean and exit.
+        -h | --help | ?: Show this help and exit.
+        -k &lt;IP&gt;| --kill &lt;IP&gt;: Kill one specific IP address for 600 seconds and exit.
+        -s | --show-conn: Show current connections list and exit.
+        -u | --unban-all: Release all banned IP and exit.
+        -ui &lt;IP&gt; | --unban-ip &lt;IP&gt;: Release one specific IP address from ban and exit.
+        -v | --version: Show version and exit.
+        -V | --verbose: Verbose output.
+</code></pre>
 
-<p>We've crafted some handsome templates for you to use. Go ahead and continue to layouts to browse through them. You can easily go back to edit your page before publishing. After publishing your page, you can revisit the page generator and switch to another theme. Your Page content will be preserved if it remained markdown format.</p>
+<p>Bash script was tested on CentOS 6.5, CentOS 7.</p>
 
-<h3>
-<a name="rather-drive-stick" class="anchor" href="#rather-drive-stick"><span class="octicon octicon-link"></span></a>Rather Drive Stick?</h3>
+<p>Please check all variables before you run this script.</p>
 
-<p>If you prefer to not use the automatic generator, push a branch named <code>gh-pages</code> to your repository to create a page manually. In addition to supporting regular HTML content, GitHub Pages support Jekyll, a simple, blog aware static site generator written by our own Tom Preston-Werner. Jekyll makes it easy to create site-wide headers and footers without having to copy them across every page. It also offers intelligent blog support and other advanced templating features.</p>
+<p>A script using system resources and should be running from root or use sudo.</p>
+
+<p>Make sure you have a git command installed. And if not, install it:</p>
+
+<pre><code>yum install git
+</code></pre>
+
+<p>Copy this script into /usr/local/bin folder:</p>
+
+<pre><code>git clone https://github.com/mrh666/ddos-cut.git &amp;&amp; cp ddos-cut/ddos-cut.sh /usr/local/bin/
+</code></pre>
+
+<p>Make it executable: </p>
+
+<pre><code>chmod +x /usr/local/bin/ddos-cut.sh
+</code></pre>
+
+<p>Add a crontab record (running every minute) - use <strong>crontab -e</strong>:</p>
+
+<pre><code>* * * * *   /usr/local/bin/ddos-cut.sh 1&gt; /dev/null 2&gt; /dev/null
+</code></pre>
+
+<p>By default script will create:<br>
+Temporary directory /tmp/ddos-cut<br>
+Files in /tmp/ddos-cut will have names: UNIX_TIMESTAMP.IP and deleted automatically<br>
+Log file /var/log/ddos-cut.log<br>
+New IPTABLES chain ddos-cut</p>
+
+<p>Default parameter are:</p>
+
+<pre><code>Connections banned per one IP = 140
+Jail time = 600 sec
+</code></pre>
 
 <h3>
 <a name="authors-and-contributors" class="anchor" href="#authors-and-contributors"><span class="octicon octicon-link"></span></a>Authors and Contributors</h3>
