@@ -1,7 +1,7 @@
 #!/bin/bash
 
-SCRIPT_NAME="DDOS CUT v.0.4 by MrMrh"
-RELEASE="Release date: 2014-09-23 10:50 GMT"
+SCRIPT_NAME="DDOS CUT v.0.4.1 by MrMrh"
+RELEASE="Release date: 2014-09-23 11:20 GMT"
 
 # Tested on CentOS 6.5, CentOS 7
 # Please check all the variables before you run this script
@@ -90,13 +90,9 @@ unban_ip() {
 		if [ $($IPTABLES -n -L $CHAIN_NAME | $GREP "$1" | wc -l) -ge 1 ]; then
 			IP_CHECK="$1"
 			$IPTABLES -D $CHAIN_NAME -s $IP_CHECK -j DROP
-			if [ $($IPTABLES -n -L $CHAIN_NAME | $GREP "$1" | wc -l) -lt 1 ]; then
-				rm -rf "$TMP_DIR/$CREATION_TIME.$1" # 1>/dev/null 2>/dev/null
-				LOG_TEXT="$LOG_PREF $1 unbanned"
-				$LOGGER -s "$LOG_TEXT" 2>> $LOG_FILE
-			else 
-				echo "Something goes wrong. Try again later."
-			fi
+			rm -rf "$TMP_DIR/$2.$1.$3" 1>/dev/null 2>/dev/null
+			LOG_TEXT="$LOG_PREF $1 unbanned"
+			$LOGGER -s "$LOG_TEXT" 2>> $LOG_FILE
 		else
 			echo "There is no such IP in $CHAIN_NAME chain"
 			echo "IP can be found by runnig ddos-cut.sh --banned-list or ddos-cut.sh -bl"
@@ -110,10 +106,11 @@ unban_timer() {
 	while read line; do
 		CREATION_TIME=$(echo $line | cut -d"." -f1)
 		IP_TO_REMOVE="$(echo $line | cut -d"." -f2).$(echo $line | cut -d"." -f3).$(echo $line | cut -d"." -f4).$(echo $line | cut -d"." -f5)"
+		FILE_SUFFIX="$(echo $line | cut -d"." -f6)"
 		let DELTIME=$U_DATE-$BAN_TIME
 		if [ $CREATION_TIME -lt $DELTIME ]; then
 			echo "$IP_TO_REMOVE expired"
-			unban_ip "$IP_TO_REMOVE"
+			unban_ip "$IP_TO_REMOVE" "$CREATION_TIME" "$FILE_SUFFIX"
 		fi
 	done
 }
@@ -139,7 +136,8 @@ kill_ip() {
 			$LOGGER -s "$LOG_TEXT" 2>> $LOG_FILE
 		fi
 	fi
-	FILE_TO_UNBAN="$TMP_DIR/$U_DATE.$1"
+	
+	FILE_TO_UNBAN="$(mktemp $TMP_DIR/$U_DATE.$1.XXXXXXXXXX)"
 	echo "$1" > $FILE_TO_UNBAN
 }
 
