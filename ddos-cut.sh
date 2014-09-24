@@ -1,7 +1,7 @@
 #!/bin/bash
 
-SCRIPT_NAME="DDOS CUT v.0.4.1 by MrMrh"
-RELEASE="Release date: 2014-09-23 11:20 GMT"
+SCRIPT_NAME="DDOS CUT v.0.5 by MrMrh"
+RELEASE="Release date: 2014-09-24 14:23 GMT"
 
 # Tested on CentOS 6.5, CentOS 7
 # Please check all the variables before you run this script
@@ -30,7 +30,7 @@ SED="/bin/sed"
 CUT="/bin/cut"
 SORT="/bin/sort"
 UNIQ="/usr/bin/uniq"
-LS="/bin/ls"
+LS="/bin/ls -1"
 LOGGER="/bin/logger"
 IPTABLES="/sbin/iptables"
 CHAIN_NAME="ddos-cut"
@@ -52,12 +52,25 @@ create_tmp_dir() {
 	fi
 }
 
+flush_chain() {
+	$IPTABLES -D INPUT -j $CHAIN_NAME
+	$IPTABLES -F $CHAIN_NAME
+	$IPTABLES -X $CHAIN_NAME
+	if [ $($IPTABLES -n -L INPUT | grep "$CHAIN_NAME[ \t]" | wc -l) -eq 0 ]; then
+		echo "Chain $CHAIN_NAME flushed and removed."
+		LOG_TEXT="$LOG_PREF Chain $CHAIN_NAME flushed and removed."
+		$LOGGER -s "$LOG_TEXT" 2>> $LOG_FILE
+	fi
+}
+
 create_chain() {
-	if [ $($IPTABLES -L $CHAIN_NAME 2>/dev/null | wc -l) -eq 0 ]; then
+	if [ $($IPTABLES -n -L INPUT | grep "$CHAIN_NAME[ \t]" | wc -l) -eq 0 ]; then
 		$IPTABLES -N $CHAIN_NAME
-		if [ $($IPTABLES -L $CHAIN_NAME 2>/dev/null | wc -l) -gt 0 ]; then
-			echo "New chain "$CHAIN_NAME" created."
-		fi
+		$IPTABLES -A $CHAIN_NAME -j RETURN
+		$IPTABLES -I INPUT -j $CHAIN_NAME
+		echo "New chain "$CHAIN_NAME" created."
+		LOG_TEXT="$LOG_PREF New chain $CHAIN_NAME created."
+		$LOGGER -s "$LOG_TEXT" 2>> $LOG_FILE
 	fi
 }
 
@@ -66,33 +79,22 @@ banned_list() {
 }
 
 unban_all() {
-	$IPTABLES -F $CHAIN_NAME
+	flush_chain
 	rm -rf $TMP_DIR/* 1>/dev/null 2>/dev/null
-	if [ $($IPTABLES -L $CHAIN_NAME 2>/dev/null | wc -l) -eq 2 ]; then
-		LOG_TEXT="$LOG_PREF Chain $CHAIN_NAME cleaned."
-		$LOGGER -s "$LOG_TEXT" 2>> $LOG_FILE
-		if [ "$VERBOSE" == 1 ]; then
-			echo "Chain cleaned"
-		fi
-	elif [ $($IPTABLES -L $CHAIN_NAME 2>/dev/null | wc -l) -eq 0 ]; then
-		create_chain
-		LOG_TEXT="$LOG_PREF Chain doesn't exist. New chain $CHAIN_NAME created."
-		$LOGGER -s "$LOG_TEXT" 2>> $LOG_FILE
-		if [ "$VERBOSE" == 1 ]; then
-			echo "Chain doesn't exist. New chain "$CHAIN_NAME" created."
-		fi
-	fi
+	create_chain
 }
 
 unban_ip() {
 	valid_ip "$1"
 	if [ "$valid_ip" == 1 ]; then
 		if [ $($IPTABLES -n -L $CHAIN_NAME | $GREP "$1" | wc -l) -ge 1 ]; then
-			IP_CHECK="$1"
-			$IPTABLES -D $CHAIN_NAME -s $IP_CHECK -j DROP
-			rm -rf "$TMP_DIR/$2.$1.$3" 1>/dev/null 2>/dev/null
-			LOG_TEXT="$LOG_PREF $1 unbanned"
-			$LOGGER -s "$LOG_TEXT" 2>> $LOG_FILE
+			$LS $TMP_DIR | $GREP "$1" |
+			while read line; do
+				$IPTABLES -D $CHAIN_NAME -s "$1" -j DROP
+				rm -rf "$TMP_DIR/$line"
+				LOG_TEXT="$LOG_PREF $1 unbanned"
+				$LOGGER -s "$LOG_TEXT" 2>> $LOG_FILE
+			done
 		else
 			echo "There is no such IP in $CHAIN_NAME chain"
 			echo "IP can be found by runnig ddos-cut.sh --banned-list or ddos-cut.sh -bl"
@@ -127,9 +129,14 @@ valid_ip() {
 kill_ip() {
 	valid_ip "$1"
 	if [ "$valid_ip" == 1 ]; then
-		$IPTABLES -A $CHAIN_NAME -s "$1" -j DROP
+		$IPTABLES -I $CHAIN_NAME 1 -s "$1" -j DROP
 		if [ $($IPTABLES -n -L $CHAIN_NAME | $GREP "$1" | wc -l) -ge 1 ]; then
-			LOG_TEXT="$LOG_PREF IP $1 has $2 connections. Banned."
+			if [ -z "$2" ]; then
+				CON=0
+			else
+				CON="$2"
+			fi
+			LOG_TEXT="$LOG_PREF IP $1 has $CON connections. Banned."
 			if [ "$VERBOSE" == 1 ]; then
 				echo $LOG_TEXT
 			fi
@@ -139,6 +146,29 @@ kill_ip() {
 	
 	FILE_TO_UNBAN="$(mktemp $TMP_DIR/$U_DATE.$1.XXXXXXXXXX)"
 	echo "$1" > $FILE_TO_UNBAN
+}
+
+show_current() {
+	$NETSTAT --numeric-ports --numeric-users -ntu | \
+	# Clean output
+	$EGREP -v "127.0.0.1|Address|servers" | \
+	# Select only connected hosts
+	$AWK '{print $5}' | \
+	# Cut off IPv6 representation
+	$SED s/::ffff:// | \
+	# Cut off remote host port
+	$CUT -d: -f1 | \
+	# Sort by IP address
+	$SORT | \
+	# Count unique IP addresses
+	$UNIQ -c | \
+	# Sort by open connections
+	$SORT -n
+}
+
+new_log() {
+	# Create the log file if doesn't exist, check if it's possible to write to log file
+	( [ -e "$LOG_FILE" ] || touch "$LOG_FILE" ) && [ ! -w "$LOG_FILE" ] && echo cannot write to $LOG_FILE && exit 1
 }
 
 ver() {
@@ -161,29 +191,6 @@ helper() {
 	echo "		-v | --version: Show version and exit."
 	echo "		-V | --verbose: Verbose output."
 	echo
-}
-
-new_log() {
-	# Create the log file if doesn't exist, check if it's possible to write to log file
-	( [ -e "$LOG_FILE" ] || touch "$LOG_FILE" ) && [ ! -w "$LOG_FILE" ] && echo cannot write to $LOG_FILE && exit 1
-}
-
-show_current() {
-	$NETSTAT --numeric-ports --numeric-users -ntu | \
-	# Clean output
-	$EGREP -v "127.0.0.1|Address|servers" | \
-	# Select only connected hosts
-	$AWK '{print $5}' | \
-	# Cut off IPv6 representation
-	$SED s/::ffff:// | \
-	# Cut off remote host port
-	$CUT -d: -f1 | \
-	# Sort by IP address
-	$SORT | \
-	# Count unique IP addresses
-	$UNIQ -c | \
-	# Sort by open connections
-	$SORT -n
 }
 
 while [ $1 ]; do
@@ -240,9 +247,9 @@ while [ $1 ]; do
 	shift
 done
 
+create_chain
 new_log
 create_tmp_dir
-create_chain
 unban_timer
 
 show_current |
